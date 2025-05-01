@@ -1,16 +1,33 @@
 import discord
 from discord.ext import commands
 import os
+from flask import Flask
+from threading import Thread
 
+# Configuração do bot
 intents = discord.Intents.default()
 intents.message_content = True
-
 bot = commands.Bot(command_prefix='!', intents=intents)
 
+# Configuração do servidor web (para manter Render acordado)
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot rodando com sucesso!"
+
+def run_web():
+    app.run(host='0.0.0.0', port=10000)  # Porta pode ser qualquer uma
+
+# Inicia o servidor web em segundo plano
+Thread(target=run_web).start()
+
+# Evento de inicialização do bot
 @bot.event
 async def on_ready():
     print(f'Bot conectado como {bot.user}')
 
+# Comando !claimed com 4 argumentos
 @bot.command()
 async def claimed(ctx, *, args):
     try:
@@ -44,4 +61,5 @@ async def claimed(ctx, *, args):
     except Exception as e:
         await ctx.send(f"Ocorreu um erro: {e}")
 
+# Inicia o bot
 bot.run(os.getenv('TOKEN'))
